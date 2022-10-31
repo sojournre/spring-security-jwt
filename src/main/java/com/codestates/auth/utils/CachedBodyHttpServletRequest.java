@@ -6,8 +6,6 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import java.io.*;
-import java.util.Enumeration;
-import java.util.Map;
 
 public class CachedBodyHttpServletRequest extends HttpServletRequestWrapper {
     private byte[] cachedBody;

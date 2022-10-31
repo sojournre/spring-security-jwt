@@ -1,6 +1,5 @@
 package com.codestates.config;
 
-import com.codestates.auth.filter.ContentCachingFilter;
 import com.codestates.auth.filter.JwtAuthenticationFilter;
 import com.codestates.auth.filter.JwtVerificationFilter;
 import com.codestates.auth.handler.MemberAccessDeniedHandler;
