@@ -25,9 +25,8 @@ server:
   servlet:
     encoding:
       force-response: true
-mail:
-  address:
-    admin: admin@gmail.com
+uid:
+  admin: admin
 
 jwt:
   secret-key: ${JWT_SECRET_KEY}

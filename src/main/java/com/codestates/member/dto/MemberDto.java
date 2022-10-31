@@ -15,10 +15,10 @@ public class MemberDto {
     @AllArgsConstructor // TODO 테스트를 위해 추가됨
     public static class Post {
         @NotBlank
-        @Email
-        private String email;
+        private String uid;
 
-        @NotBlank
+        @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&-+=()])(?=\\S+$).{8,20}$",
+                message = "암호는 8~20자 영문 대문자, 소문자, 숫자, 특수문자를 사용하세요.")
         private String password;
 
         @NotBlank(message = "이름은 공백이 아니어야 합니다.")
@@ -27,6 +27,15 @@ public class MemberDto {
         @Pattern(regexp = "^010-\\d{3,4}-\\d{4}$",
                 message = "휴대폰 번호는 010으로 시작하는 11자리 숫자와 '-'로 구성되어야 합니다.")
         private String phone;
+
+        @NotBlank
+        private String birthDate;
+
+        @NotBlank
+        private String sex;
+
+        @Email
+        private String email;
     }
 
     @Getter
@@ -54,7 +63,7 @@ public class MemberDto {
     @Getter
     public static class Response {
         private long memberId;
-        private String email;
+        private String uid;
         private String name;
         private String phone;
         private Member.MemberStatus memberStatus;

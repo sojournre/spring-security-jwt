@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +29,10 @@ import java.util.Optional;
 @Transactional
 @Service
 public class MemberService {
+
+    public static final int MAX_FAILED_ATTEMPTS = 5;
+
+    private static final long LOCK_TIME_DURATION = 24 * 60 * 60 * 1000; // 24 hours
     private final MemberRepository memberRepository;
     private final ApplicationEventPublisher publisher;
 
@@ -46,12 +51,12 @@ public class MemberService {
     }
 
     public Member createMember(Member member) {
-        verifyExistsEmail(member.getEmail());
+        verifyExistsUid(member.getUid());
 
         String encryptedPassword = passwordEncoder.encode(member.getPassword());
         member.setPassword(encryptedPassword);
 
-        List<String> roles = authorityUtils.createRoles(member.getEmail());
+        List<String> roles = authorityUtils.createRoles(member.getUid());
         member.setRoles(roles);
 
         Member savedMember = memberRepository.save(member);
@@ -101,9 +106,48 @@ public class MemberService {
         return findMember;
     }
 
-    private void verifyExistsEmail(String email) {
-        Optional<Member> member = memberRepository.findByEmail(email);
+    private void verifyExistsUid(String uid) {
+        Optional<Member> member = memberRepository.findByUid(uid);
         if (member.isPresent())
             throw new BusinessLogicException(ExceptionCode.MEMBER_EXISTS);
+    }
+
+    public Member findMemberByUid(String uid) {
+        Optional<Member> optionalMember = memberRepository.findByUid(uid);
+        Member findMember = optionalMember.orElseThrow(() ->
+                new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
+        return findMember;
+    }
+
+    public void increaseFailedAttempts(Member member) {
+        int newFailAttempts = member.getFailedAttempt() + 1;
+        memberRepository.updateFailedAttempts(newFailAttempts, member.getUid());
+    }
+
+    public void resetFailedAttempts(String uid) {
+        memberRepository.updateFailedAttempts(0, uid);
+    }
+
+    public void lock(Member member) {
+        member.setIsAccountNonLocked(false);
+        member.setLockTime(new Date());
+
+        memberRepository.save(member);
+    }
+
+    public boolean unlockWhenTimeExpired(Member member) {
+        long lockTimeInMillis = member.getLockTime().getTime();
+        long currentTimeInMillis = System.currentTimeMillis();
+
+        if (lockTimeInMillis + LOCK_TIME_DURATION < currentTimeInMillis) {
+            member.setIsAccountNonLocked(true);
+            member.setLockTime(null);
+            member.setFailedAttempt(0);
+
+            memberRepository.save(member);
+
+            return true;
+        }
+        return false;
     }
 }

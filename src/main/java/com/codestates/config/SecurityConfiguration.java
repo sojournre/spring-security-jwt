@@ -1,5 +1,6 @@
 package com.codestates.config;
 
+import com.codestates.auth.filter.ContentCachingFilter;
 import com.codestates.auth.filter.JwtAuthenticationFilter;
 import com.codestates.auth.filter.JwtVerificationFilter;
 import com.codestates.auth.handler.MemberAccessDeniedHandler;
@@ -30,10 +31,14 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfiguration {
     private final JwtTokenizer jwtTokenizer;
     private final CustomAuthorityUtils authorityUtils;
+    private final MemberAuthenticationSuccessHandler memberAuthenticationSuccessHandler;
+    private final MemberAuthenticationFailureHandler memberAuthenticationFailureHandler;
 
-    public SecurityConfiguration(JwtTokenizer jwtTokenizer, CustomAuthorityUtils authorityUtils) {
+    public SecurityConfiguration(JwtTokenizer jwtTokenizer, CustomAuthorityUtils authorityUtils, MemberAuthenticationSuccessHandler memberAuthenticationSuccessHandler, MemberAuthenticationFailureHandler memberAuthenticationFailureHandler) {
         this.jwtTokenizer = jwtTokenizer;
         this.authorityUtils = authorityUtils;
+        this.memberAuthenticationSuccessHandler = memberAuthenticationSuccessHandler;
+        this.memberAuthenticationFailureHandler = memberAuthenticationFailureHandler;
     }
 
     @Bean
@@ -87,8 +92,8 @@ public class SecurityConfiguration {
 
             JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, jwtTokenizer);
             jwtAuthenticationFilter.setFilterProcessesUrl("/v11/auth/login");
-            jwtAuthenticationFilter.setAuthenticationSuccessHandler(new MemberAuthenticationSuccessHandler());
-            jwtAuthenticationFilter.setAuthenticationFailureHandler(new MemberAuthenticationFailureHandler());
+            jwtAuthenticationFilter.setAuthenticationSuccessHandler(memberAuthenticationSuccessHandler);
+            jwtAuthenticationFilter.setAuthenticationFailureHandler(memberAuthenticationFailureHandler);
 
             JwtVerificationFilter jwtVerificationFilter = new JwtVerificationFilter(jwtTokenizer, authorityUtils);
 

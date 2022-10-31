@@ -5,6 +5,7 @@ import com.codestates.exception.BusinessLogicException;
 import com.codestates.exception.ExceptionCode;
 import com.codestates.member.entity.Member;
 import com.codestates.member.repository.MemberRepository;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,28 +27,29 @@ public class MemberDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<Member> optionalMember = memberRepository.findByEmail(username);
+        Optional<Member> optionalMember = memberRepository.findByUid(username);
         Member findMember = optionalMember.orElseThrow(() -> new BusinessLogicException(ExceptionCode.MEMBER_NOT_FOUND));
 
         return new MemberDetails(findMember);
     }
 
-    private final class MemberDetails extends Member implements UserDetails {
+    @Getter
+    public final class MemberDetails extends Member implements UserDetails {
         MemberDetails(Member member) {
             setMemberId(member.getMemberId());
-            setEmail(member.getEmail());
+            setUid(member.getUid());
             setPassword(member.getPassword());
             setRoles(member.getRoles());
         }
 
         @Override
         public Collection<? extends GrantedAuthority> getAuthorities() {
-            return authorityUtils.createAuthorities(this.getEmail());
+            return authorityUtils.createAuthorities(this.getUid());
         }
 
         @Override
         public String getUsername() {
-            return getEmail();
+            return getUid();
         }
 
         @Override
@@ -57,7 +59,7 @@ public class MemberDetailService implements UserDetailsService {
 
         @Override
         public boolean isAccountNonLocked() {
-            return true;
+            return isIsAccountNonLocked();
         }
 
         @Override
