@@ -18,6 +18,8 @@ import java.util.List;
 @Setter
 @Entity
 public class Member extends Auditable {
+    private static final long PASSWORD_EXPIRATION_TIME
+            = 30L * 24L * 60L * 60L * 100L * 6L; // 30 days * 6 = 6개월
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long memberId;
@@ -51,6 +53,8 @@ public class Member extends Auditable {
     private int failedAttempt;
 
     private Date lockTime;
+
+    private Date passwordChangedTime = new Date();
 
     @Enumerated(value = EnumType.STRING)
     @Column(length = 20, nullable = false)
@@ -100,5 +104,14 @@ public class Member extends Auditable {
         MemberStatus(String status) {
            this.status = status;
         }
+    }
+
+    public boolean isPasswordExpired() {
+        if (this.passwordChangedTime == null) return false;
+
+        long currentTime = System.currentTimeMillis();
+        long lastChangedTime = this.passwordChangedTime.getTime();
+
+        return currentTime > lastChangedTime + PASSWORD_EXPIRATION_TIME;
     }
 }

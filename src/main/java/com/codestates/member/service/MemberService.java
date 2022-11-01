@@ -150,4 +150,13 @@ public class MemberService {
         }
         return false;
     }
+
+    public void changePassword(Member member, String newPassword) {
+        String encodedPassword = passwordEncoder.encode(newPassword);
+        member.setPassword(encodedPassword);
+
+        member.setPasswordChangedTime(new Date());
+
+        memberRepository.save(member);
+    }
 }

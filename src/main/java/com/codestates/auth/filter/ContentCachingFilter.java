@@ -9,13 +9,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
-@Component
-//@WebFilter(filterName = "ContentCachingFilter", urlPatterns = "/v11/*")
+@Component // Component 없이 webfilter 만 추가하면 login 에서 실행안됨.
+//@WebFilter(filterName = "ContentCachingFilter", urlPatterns = "/v11/auth/login")
 @Slf4j
 public class ContentCachingFilter extends OncePerRequestFilter {
     @Override
@@ -31,6 +32,6 @@ public class ContentCachingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
         String path = request.getRequestURI();
-        return path.startsWith("/h2/");
+        return path.startsWith("/h2/") || path.startsWith("/v11/members");
     }
 }
